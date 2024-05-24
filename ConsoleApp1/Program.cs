@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using Dapper;
 
-namespace DatabaseApp
+namespace ConsoleApp1
 {
     class Program
     {
@@ -14,7 +14,6 @@ namespace DatabaseApp
             {
                 connection.Open();
 
-                
                 Console.WriteLine("Спроба підключення до бази даних...");
                 try
                 {
@@ -26,109 +25,104 @@ namespace DatabaseApp
                     Console.WriteLine($"Помилка підключення до бази даних: {ex.Message}");
                 }
 
+                // Task 1: Insert Functionality
+                InsertNewCustomer(connection, "John Doe", "john.doe@example.com", "Kyiv", "Ukraine");
+                InsertNewCountry(connection, "France");
+                InsertNewCity(connection, "Paris", "France");
+                InsertNewInterest(connection, "Books");
+                InsertNewPromotionItem(connection, "Discounted Books");
+
+                // Task 2: Update Functionality
+                UpdateCustomer(connection, 1, "John Doe", "john.doe@example.com", "Lviv", "Ukraine");
+                UpdateCountry(connection, "France", "French Republic");
+                UpdateCity(connection, "Paris", "Lyon", "France");
+               
+
+                // Task 3: Deletion Functionality
+                DeleteCustomer(connection, 1);
+                DeleteCountry(connection, "France");
                 
-                ShowAllCustomers(connection);
-                ShowAllCustomerEmails(connection);
-                ShowAllInterests(connection);
-                ShowAllPromotionItems(connection);
-                ShowAllCities(connection);
-                ShowAllCountries(connection);
 
+                // Task 4: Additional Display Functionality
+                ShowCitiesInCountry(connection, "Ukraine");
                 
-                ShowCustomersFromCity(connection, "Київ");
-                ShowCustomersFromCountry(connection, "Україна");
-                ShowPromotionsForCountry(connection, "Україна");
             }
         }
 
-        static void ShowAllCustomers(SqlConnection connection)
+        static void InsertNewCustomer(SqlConnection connection, string fullName, string email, string city, string country)
         {
-            var customers = connection.Query<string>("SELECT FullName FROM Customers");
-            Console.WriteLine("Покупці:");
-            foreach (var customer in customers)
-            {
-                Console.WriteLine(customer);
-            }
+            connection.Execute("INSERT INTO Customers (FullName, Email, City, Country) VALUES (@FullName, @Email, @City, @Country)",
+                new { FullName = fullName, Email = email, City = city, Country = country });
+            Console.WriteLine("New customer added successfully.");
         }
 
-        static void ShowAllCustomerEmails(SqlConnection connection)
+        static void InsertNewCountry(SqlConnection connection, string countryName)
         {
-            var emails = connection.Query<string>("SELECT Email FROM Customers");
-            Console.WriteLine("Email покупців:");
-            foreach (var email in emails)
-            {
-                Console.WriteLine(email);
-            }
+            connection.Execute("INSERT INTO Countries (CountryName) VALUES (@CountryName)", new { CountryName = countryName });
+            Console.WriteLine("New country added successfully.");
         }
 
-        static void ShowAllInterests(SqlConnection connection)
+        static void InsertNewCity(SqlConnection connection, string cityName, string country)
         {
-            var interests = connection.Query<string>("SELECT DISTINCT Interest FROM Interests");
-            Console.WriteLine("Список розділів:");
-            foreach (var interest in interests)
-            {
-                Console.WriteLine(interest);
-            }
+            connection.Execute("INSERT INTO Cities (CityName, Country) VALUES (@CityName, @Country)", new { CityName = cityName, Country = country });
+            Console.WriteLine("New city added successfully.");
         }
 
-        static void ShowAllPromotionItems(SqlConnection connection)
+        static void InsertNewInterest(SqlConnection connection, string interest)
         {
-            var promotionItems = connection.Query<string>("SELECT DISTINCT PromotionItem FROM PromotionItems");
-            Console.WriteLine("Список акційних товарів:");
-            foreach (var item in promotionItems)
-            {
-                Console.WriteLine(item);
-            }
+            connection.Execute("INSERT INTO Interests (Interest) VALUES (@Interest)", new { Interest = interest });
+            Console.WriteLine("New interest added successfully.");
         }
 
-        static void ShowAllCities(SqlConnection connection)
+        static void InsertNewPromotionItem(SqlConnection connection, string item)
         {
-            var cities = connection.Query<string>("SELECT DISTINCT City FROM Customers");
-            Console.WriteLine("Міста:");
+            connection.Execute("INSERT INTO PromotionItems (PromotionItem) VALUES (@Item)", new { Item = item });
+            Console.WriteLine("New promotion item added successfully.");
+        }
+
+        static void UpdateCustomer(SqlConnection connection, int customerId, string fullName, string email, string city, string country)
+        {
+            connection.Execute("UPDATE Customers SET FullName = @FullName, Email = @Email, City = @City, Country = @Country WHERE CustomerID = @CustomerID",
+                new { CustomerID = customerId, FullName = fullName, Email = email, City = city, Country = country });
+            Console.WriteLine("Customer information updated successfully.");
+        }
+
+        static void UpdateCountry(SqlConnection connection, string oldCountryName, string newCountryName)
+        {
+            connection.Execute("UPDATE Countries SET CountryName = @NewCountryName WHERE CountryName = @OldCountryName",
+                new { OldCountryName = oldCountryName, NewCountryName = newCountryName });
+            Console.WriteLine("Country information updated successfully.");
+        }
+
+        static void UpdateCity(SqlConnection connection, string cityName, string newCityName, string country)
+        {
+            connection.Execute("UPDATE Cities SET CityName = @NewCityName WHERE CityName = @CityName AND Country = @Country",
+                new { CityName = cityName, NewCityName = newCityName, Country = country });
+            Console.WriteLine("City information updated successfully.");
+        }
+
+        static void DeleteCustomer(SqlConnection connection, int customerId)
+        {
+            connection.Execute("DELETE FROM Customers WHERE CustomerID = @CustomerID", new { CustomerID = customerId });
+            Console.WriteLine("Customer deleted successfully.");
+        }
+
+        static void DeleteCountry(SqlConnection connection, string countryName)
+        {
+            connection.Execute("DELETE FROM Countries WHERE CountryName = @CountryName", new { CountryName = countryName });
+            Console.WriteLine("Country deleted successfully.");
+        }
+
+        static void ShowCitiesInCountry(SqlConnection connection, string country)
+        {
+            var cities = connection.Query<string>("SELECT CityName FROM Cities WHERE Country = @Country", new { Country = country });
+            Console.WriteLine($"Cities in {country}:");
             foreach (var city in cities)
             {
                 Console.WriteLine(city);
             }
         }
 
-        static void ShowAllCountries(SqlConnection connection)
-        {
-            var countries = connection.Query<string>("SELECT DISTINCT Country FROM Customers");
-            Console.WriteLine("Країни:");
-            foreach (var country in countries)
-            {
-                Console.WriteLine(country);
-            }
-        }
-
-        static void ShowCustomersFromCity(SqlConnection connection, string city)
-        {
-            var customers = connection.Query<string>("SELECT FullName FROM Customers WHERE City = @City", new { City = city });
-            Console.WriteLine($"Покупці з міста {city}:");
-            foreach (var customer in customers)
-            {
-                Console.WriteLine(customer);
-            }
-        }
-
-        static void ShowCustomersFromCountry(SqlConnection connection, string country)
-        {
-            var customers = connection.Query<string>("SELECT FullName FROM Customers WHERE Country = @Country", new { Country = country });
-            Console.WriteLine($"Покупці з країни {country}:");
-            foreach (var customer in customers)
-            {
-                Console.WriteLine(customer);
-            }
-        }
-
-        static void ShowPromotionsForCountry(SqlConnection connection, string country)
-        {
-            var promotions = connection.Query<int>("SELECT PromotionID FROM Promotions WHERE Country = @Country", new { Country = country });
-            Console.WriteLine($"Акції для країни {country}:");
-            foreach (var promotion in promotions)
-            {
-                Console.WriteLine(promotion);
-            }
-        }
+        
     }
 }
