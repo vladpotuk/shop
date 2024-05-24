@@ -14,7 +14,7 @@ namespace DatabaseApp
             {
                 connection.Open();
 
-                
+
                 Console.WriteLine("Спроба підключення до бази даних...");
                 try
                 {
@@ -26,7 +26,7 @@ namespace DatabaseApp
                     Console.WriteLine($"Помилка підключення до бази даних: {ex.Message}");
                 }
 
-                
+
                 ShowAllCustomers(connection);
                 ShowAllCustomerEmails(connection);
                 ShowAllInterests(connection);
@@ -34,7 +34,7 @@ namespace DatabaseApp
                 ShowAllCities(connection);
                 ShowAllCountries(connection);
 
-                
+
                 ShowCustomersFromCity(connection, "Київ");
                 ShowCustomersFromCountry(connection, "Україна");
                 ShowPromotionsForCountry(connection, "Україна");
